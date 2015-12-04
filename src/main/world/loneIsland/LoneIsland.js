@@ -68,6 +68,30 @@ LoneIsland = function() {
         }
     };
 
+    this.runAnimate = function(screen, days) {
+        var toDay = days ? this.day + days : 10000000;
+
+        if (this.day < toDay) {
+            screen.refresh(this);
+            window.setTimeout(runDay, 700);
+        }
+
+        function runDay() {
+            self.day++;
+            var allDead = true;
+            for (var i = 0, len = self.individuals.length; i < len; i++) {
+                var survived = self.updateIndividual(self.individuals[i]);
+                if (allDead && survived) allDead = false;
+            }
+            screen.refresh(self);
+
+            if (!allDead && self.day < toDay)
+                window.setTimeout(runDay, 100);
+            else
+                Util.log("Finished");
+        }
+    };
+
     this.updateIndividual = function(ind) {
         if (ind.loneIslandEnergy <= 0) return false;
 
@@ -98,7 +122,7 @@ LoneIsland = function() {
     }
 
     function defineWorld() {
-        self.world = new Torus(20, 20, LoneIsland.water);
+        self.world = new Torus(self.WORLD_SIZE, self.WORLD_SIZE, LoneIsland.water);
         self.world.loneIslangGroundSquares = [];
         putTerrain(LoneIsland.ground, 9, 9);
         putTerrain(LoneIsland.ground, 10, 9);
@@ -159,9 +183,32 @@ LoneIsland = function() {
     }
 
 
+    // Drawable Grid interface
+
+    this.getGridDimensions = function() {
+        return { x: this.WORLD_SIZE, y: this.WORLD_SIZE };
+    };
+
+    this.getGridBottomLayerShape = function(x, y) {
+        switch(this.world.getTerrain(x, y)) {
+            case 0: return "Green";
+            case 1: return "Empty";
+        }
+    };
+
+    this.getGridTopLayerShape = function(x, y) {
+        var obj = this.world.getObject(x, y);
+        return obj && obj.getShape();
+    };
+
+    // -----------------------------------------
+
+
     this.world = null;
     this.individuals = [];
     this.day = 0;
+
+    this.WORLD_SIZE = 20;
 
     init();
 

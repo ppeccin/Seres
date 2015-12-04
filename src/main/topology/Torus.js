@@ -36,9 +36,9 @@ Torus = function(width, height, defaultTerrain) {
         var iX = Math.round(x);
         var iY = Math.round(y);
 
-        if (isNaN(iX) || isNaN(iY) || iX < 0 || iX > 19 || iY < 0 || iY > 19) {
-            console.log("fodeu");
-        }
+        //if (isNaN(iX) || isNaN(iY) || iX < 0 || iX > 19 || iY < 0 || iY > 19) {
+        //    console.log("fodeu");
+        //}
 
         var old = objects[iX][iY];
         if (old && (old !== obj)) return null;
@@ -76,6 +76,19 @@ Torus = function(width, height, defaultTerrain) {
     function radiansForBearing(value) {
         return (value + 1) * Math.PI;
     }
+
+
+    // Drawable Grid interface
+
+    this.getGridDimensions = function() {
+        return { x: width, y: height };
+    };
+
+    this.getGridBottomLayerShape = function(x, y) {
+    };
+
+    this.getGridTopLayerShape = function(x, y) {
+    };
 
 
     var objects;

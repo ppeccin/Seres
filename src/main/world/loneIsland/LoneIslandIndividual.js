@@ -35,12 +35,15 @@ LoneIslandIndividual = function(brain) {
         this.brain.outputs[1].inputs[0] = this.brain.inputs[1];
     };
 
+    this.getShape = function() {
+        return this.loneIslandEnergy > 0 ? "RedCircle" : "GrayCircle";
+    };
+
 
     this.brain = null;
     this.loneIslandAge = 0;
     this.loneIslandEnergy = 0;
     this.loneIslandCachedNearestGround = null;
-
 
     init();
 

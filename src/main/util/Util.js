@@ -3,7 +3,7 @@
 Util = new function() {
 
     this.log = function(str) {
-        console.log(">> wmsx: " + str);
+        console.log(">> Seres: " + str);
     };
 
     this.message = function(str) {

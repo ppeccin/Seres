@@ -4,7 +4,7 @@
 
 LoneIslandGame = {};
 
-LoneIslandGame.bestOutOf = function(best, total, iterations) {
+LoneIslandGame.bestOutOf = function(best, total, evaluations) {
 
     var all = Util.arrayFillFunc(new Array(total), function(i) {
         return new LoneIslandIndividual();
@@ -15,7 +15,7 @@ LoneIslandGame.bestOutOf = function(best, total, iterations) {
 
     for (var i = 0, len = all.length; i < len; i++) {
         var ind = all[i];
-        loneIsland.evaluateIndividual(ind, iterations);
+        loneIsland.evaluateIndividual(ind, evaluations);
     }
 
     all.sort(function(a, b) {
@@ -32,7 +32,7 @@ LoneIslandGame.evolveIndividual = function(individual, generations, evaluations)
     L = loneIsland;
 
     var ind = individual;
-    if (!ind) {
+    if (!ind && generations > 0) {
         ind = new LoneIslandIndividual();
         loneIsland.evaluateIndividual(ind, evaluations);
     }
@@ -44,6 +44,11 @@ LoneIslandGame.evolveIndividual = function(individual, generations, evaluations)
         if (newInd.loneIslandFitness >= ind.loneIslandFitness) ind = newInd;
     }
 
-    return ind;
+    // One last animated run for the best individual
+    loneIsland.reset();
+    ind.reset();
+    loneIsland.putIndividual(ind);
+    loneIsland.runAnimate(Seres.screen);
 
+    return ind;
 };

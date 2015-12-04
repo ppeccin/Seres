@@ -2,7 +2,12 @@
 
 Seres = {
 
-    VERSION:                        "0.1"
+    SCREEN_ELEMENT_ID:              "seres-screen",
+    SCREEN_FULLSCREEN_DISABLED:     false,
+    SCREEN_DEFAULT_WIDTH:           512,
+    SCREEN_DEFAULT_HEIGHT:          512,
+
+    VERSION:                        "version 0.1"
 
 };
 
