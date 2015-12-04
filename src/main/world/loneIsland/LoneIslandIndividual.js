@@ -36,7 +36,7 @@ LoneIslandIndividual = function(brain) {
     };
 
     this.getShape = function() {
-        return this.loneIslandEnergy > 0 ? "RedCircle" : "GrayCircle";
+        return this.loneIslandEnergy > 0 ? "Animal" : "DeadAnimal";
     };
 
 

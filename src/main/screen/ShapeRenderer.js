@@ -9,18 +9,23 @@ ShapeRenderer =  {
         context.fillRect(0, 0, ShapeRenderer.SQUARE_SIZE, ShapeRenderer.SQUARE_SIZE);
     },
 
-    Green: function(context) {
-        context.fillStyle = "lightgreen";
+    Water: function(context) {
+        context.fillStyle = "lightblue";
         context.fillRect(0, 0, ShapeRenderer.SQUARE_SIZE, ShapeRenderer.SQUARE_SIZE);
     },
 
-    RedCircle: function(context) {
+    Grass: function(context) {
+        context.fillStyle = "rgb(70, 160, 70)";
+        context.fillRect(0, 0, ShapeRenderer.SQUARE_SIZE, ShapeRenderer.SQUARE_SIZE);
+    },
+
+    Animal: function(context) {
         context.fillStyle = "red";
         context.arc(ShapeRenderer.SQUARE_SIZE / 2, ShapeRenderer.SQUARE_SIZE / 2, ShapeRenderer.SQUARE_SIZE *.35, 0, Math.PI * 2);
         context.fill();
     },
 
-    GrayCircle: function(context) {
+    DeadAnimal: function(context) {
         context.fillStyle = "gray";
         context.arc(ShapeRenderer.SQUARE_SIZE / 2, ShapeRenderer.SQUARE_SIZE / 2, ShapeRenderer.SQUARE_SIZE *.35, 0, Math.PI * 2);
         context.fill();

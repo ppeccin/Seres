@@ -85,10 +85,12 @@ LoneIsland = function() {
             }
             screen.refresh(self);
 
-            if (!allDead && self.day < toDay)
+            if (!allDead && self.day < toDay && !Seres.STOP)
                 window.setTimeout(runDay, 100);
-            else
+            else {
+                Seres.STOP = false;
                 Util.log("Finished");
+            }
         }
     };
 
@@ -191,8 +193,8 @@ LoneIsland = function() {
 
     this.getGridBottomLayerShape = function(x, y) {
         switch(this.world.getTerrain(x, y)) {
-            case 0: return "Green";
-            case 1: return "Empty";
+            case 0: return "Grass";
+            case 1: return "Water";
         }
     };
 
