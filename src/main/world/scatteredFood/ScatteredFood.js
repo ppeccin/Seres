@@ -36,20 +36,32 @@ ScatteredFood = function() {
         return ind;
     };
 
-    this.evaluateIndividual = function(individual, iterations) {
-        var fitnesses = [];
+    this.evaluateIndividual = function(ind, iterations) {
+        ind.resetAverageFitness();
         for (var i = 0; i < iterations; i++) {
             this.reset();
-            individual.reset();
-            this.putIndividual(individual);
+            ind.reset();
+            this.putIndividual(ind);
             this.run();
-            fitnesses.push(individual.scatteredFoodAge);
+            ind.rememberFitness();
         }
 
-        var avg = Util.arrayAverage(fitnesses);
-        individual.scatteredFoodFitness = avg;
+        return ind.averageFitness();
+    };
 
-        return avg;
+    this.evaluateIndividuals = function(individuals, iterations) {
+        for (var i = 0, indCount = individuals.length; i < indCount; i++)
+            individuals[i].resetAverageFitness();
+        for (var t = 0; t < iterations; t++) {
+            this.reset();
+            for (i = 0; i < indCount; i++) {
+                individuals[i].reset();
+                this.putIndividual(individuals[i]);
+            }
+            this.run();
+            for (i = 0; i < indCount; i++)
+                individuals[i].rememberFitness();
+        }
     };
 
     this.run = function(days) {
@@ -64,6 +76,15 @@ ScatteredFood = function() {
 
             if (allDead) break;
         }
+    };
+
+    this.runAnimatePopulation = function(pop) {
+        this.reset();
+        for (var i = 0; i < pop.length; i++) {
+            pop[i].reset();
+            this.putIndividual(pop[i]);
+        }
+        this.runAnimate(Seres.screen);
     };
 
     this.runAnimate = function(screen, days) {

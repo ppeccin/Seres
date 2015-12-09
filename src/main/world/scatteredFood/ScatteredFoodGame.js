@@ -4,7 +4,8 @@
 
 ScatteredFoodGame = {};
 
-ScatteredFoodGame.evolvePopulation = function(pop, total, best, generations, evaluations) {
+ScatteredFoodGame.evolvePopulation = function(pop, total, best, generations, evaluations, indsTogether) {
+    if (indsTogether === undefined) indsTogether = 1;
 
     var world = new ScatteredFood();
     L = world;
@@ -23,10 +24,14 @@ ScatteredFoodGame.evolvePopulation = function(pop, total, best, generations, eva
             pop[c] = new ScatteredFoodIndividual(Mutation.spawnMutating(pop[b].brain, Mutation.defaultParameters));
 
         // Evaluate population
-        for (var i = 0; i < total; i++)
-            world.evaluateIndividual(pop[i], evaluations);
+        if (indsTogether <= 1)
+            for (var i = 0; i < total; i++) world.evaluateIndividual(pop[i], evaluations);
+        else
+            for (i = 0; i < total; i += indsTogether) world.evaluateIndividuals(pop.slice(i, i + indsTogether), evaluations);
+
+        // Sort
         pop.sort(function(a, b) {
-            return b.scatteredFoodFitness - a.scatteredFoodFitness;
+            return b.averageFitness() - a.averageFitness();
         });
 
         // Save best individuals regularly
@@ -37,11 +42,8 @@ ScatteredFoodGame.evolvePopulation = function(pop, total, best, generations, eva
         }
     }
 
-    // One last animated run for the best individual
-    world.reset();
-    pop[0].reset();
-    world.putIndividual(pop[0]);
-    world.runAnimate(Seres.screen);
+    // One last animated run for the best individuals
+    world.runAnimatePopulation(pop.slice(0, indsTogether));
 
     return pop;
 };
@@ -61,7 +63,7 @@ ScatteredFoodGame.evolveIndividual = function(individual, generations, evaluatio
         var newInd = new ScatteredFoodIndividual(Mutation.spawnMutating(ind.brain, Mutation.defaultParameters));
         world.evaluateIndividual(newInd, evaluations);
 
-        if (newInd.scatteredFoodFitness >= ind.scatteredFoodFitness) ind = newInd;
+        if (newInd.averageFitness() >= ind.averageFitness()) ind = newInd;
 
         if (generations % 10 === 0) localStorage["ScatteredFoodBest"] = JSON.stringify(ind.brain.toGenome());
     }
@@ -73,16 +75,6 @@ ScatteredFoodGame.evolveIndividual = function(individual, generations, evaluatio
     world.runAnimate(Seres.screen);
 
     return ind;
-
-};
-
-LoneIslandGame.bestOutOf = function(all, bestCount) {
-
-    all.sort(function(a, b) {
-        return b.scatteredFoodFitness - a.scatteredFoodFitness;
-    });
-
-    return all.slice(0, bestCount);
 
 };
 

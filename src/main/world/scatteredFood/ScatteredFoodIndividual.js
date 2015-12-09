@@ -8,6 +8,7 @@ ScatteredFoodIndividual = function(brain) {
     function init() {
         self.brain = brain || Brain.create(2, 2);
         self.reset();
+        self.resetAverageFitness();
         if (!brain) self.basicConfig();
     }
 
@@ -16,7 +17,11 @@ ScatteredFoodIndividual = function(brain) {
         this.scatteredFoodAge = 0;
         this.scatteredFoodEnergy = ScatteredFood.initialEnergy;
         this.scatteredFoodCachedNearestFood = null;
-        this.scatteredFoodFitness = null;
+        this.scatteredFoodAverageFitness = null;
+    };
+
+    this.resetAverageFitness = function() {
+        this.scatteredFoodFitnessMeasures = [];
     };
 
     this.basicConfig = function() {
@@ -41,11 +46,25 @@ ScatteredFoodIndividual = function(brain) {
         return this.scatteredFoodEnergy > 0 ? "Animal" : "DeadAnimal";
     };
 
+    this.rememberFitness = function() {
+        this.scatteredFoodFitnessMeasures.push(this.scatteredFoodAge);
+    };
+
+    this.averageFitness = function() {
+        if (this.scatteredFoodAverageFitness === null) {
+            this.scatteredFoodAverageFitness = Util.arrayAverage(this.scatteredFoodFitnessMeasures);
+            this.scatteredFoodFitnessMeasures = [];
+        }
+        return this.scatteredFoodAverageFitness;
+    };
+
 
     this.brain = null;
     this.scatteredFoodAge = 0;
     this.scatteredFoodEnergy = 0;
     this.scatteredFoodCachedNearestFood = null;
+    this.scatteredFoodAverageFitness = null;
+    this.scatteredFoodFitnessMeasures = null;
 
     init();
 
