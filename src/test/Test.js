@@ -30,3 +30,11 @@ function testLoneIsland() {
     return I;
 }
 
+function testScatteredFood() {
+
+    L = new ScatteredFood();
+    I = P = null;
+
+    return I;
+}
+

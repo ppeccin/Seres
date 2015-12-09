@@ -13,16 +13,16 @@ Mutation.mutate = function(brain, pars) {
     var inputsCount = brain.inputs.length;
     var mutNeuronCount = brain.neurons.length - inputsCount;
 
-    // Change Weight
-    var cwt = pars.changeWeightTries;
-    if (cwt > 0) {
-        var cw = pars.changeWeight;
+    // Change Weights
+    var cwc = pars.changeWeighChances;
+    if (cwc.length > 0) {
         var t0 = pars.changeWeightTo0;
         var tP1 = t0 + pars.changeWeightToPos1;
         var tN1 = tP1 + pars.changeWeightToNeg1;
 
-        for (var i = 0; i < cwt; i++) {
-            if (Math.random() >= cw) continue;
+        for (var i = 0; i < cwc.length; i++) {
+            var cw = cwc[i];
+            if (Math.random() >= cw) break;
 
             var neuron = brain.neurons[inputsCount + ((Math.random() * mutNeuronCount) | 0)];
             var input = (Math.random() * neuron.inputs.length) | 0;
@@ -44,10 +44,9 @@ Mutation.mutate = function(brain, pars) {
 
 Mutation.defaultParameters = {
 
-    changeWeightTries: 1,
-    changeWeight: 1,
-    changeWeightTo0: 0.1,
-    changeWeightToPos1: 0.1,
-    changeWeightToNeg1: 0.1
+    changeWeighChances: [1, 0.4, 0.3],
+    changeWeightTo0: 0.2,
+    changeWeightToPos1: 0.2,
+    changeWeightToNeg1: 0.2
 
 };

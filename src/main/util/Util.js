@@ -72,6 +72,16 @@ Util = new function() {
         return arr;
     };
 
+    this.arrayRemoveAllOccurrencesFunc = function(arr, func) {
+        var i = 0;
+        while (i < arr.length) {
+            var equal = func(arr[i]);
+            if (equal) arr.splice(i, 1);
+            else i++;
+        }
+        return arr;
+    };
+
     // Only 8 bit values
     this.uInt8ArrayToByteString = function(ints, start, length) {
         if (ints === null || ints == undefined) return ints;

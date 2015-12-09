@@ -2,34 +2,32 @@
  * Created by peccin on 30/11/2015.
  */
 
-// A torus with an island in its center
-// Individuals spawn at random borders and have to move to the island in the shortest time
+// A torus land with scattered food around
+// Individuals spawn at random positions and have to eat food to survive more time
 // Individual specs:
 //      Inputs:
-//              bearing of the nearest ground square
-//              current terrain type
+//              bearing of the nearest food square
+//              current energy
 //      Outputs:
 //              bearing to move (according to torus definition)
 //              intensity to move
 
 
-LoneIsland = function() {
+ScatteredFood = function() {
     var self = this;
 
     function init() {
-        defineWorld();
     }
 
     this.reset = function() {
-        for (var i = 0, len = this.individuals.length; i < len; i++)
-            this.world.removeObject(this.individuals[i])
+        defineWorld();
         this.individuals.length = 0;
         this.day = 0;
     };
 
     this.putIndividual = function(ind) {
         do {
-            var pos = randomBorderPosition();
+            var pos = randomPosition();
         } while (this.world.getObject(pos.x, pos.y));
 
         if (!Util.arrayHasElement(this.individuals, ind)) this.individuals.push(ind);
@@ -45,11 +43,11 @@ LoneIsland = function() {
             individual.reset();
             this.putIndividual(individual);
             this.run();
-            fitnesses.push(individual.loneIslandAge);
+            fitnesses.push(individual.scatteredFoodAge);
         }
 
         var avg = Util.arrayAverage(fitnesses);
-        individual.loneIslandFitness = avg;
+        individual.scatteredFoodFitness = avg;
 
         return avg;
     };
@@ -86,7 +84,7 @@ LoneIsland = function() {
             screen.refresh(self);
 
             if (!allDead && self.day < toDay && !Seres.STOP)
-                window.setTimeout(runDay, 100);
+                window.setTimeout(runDay, 60);
             else {
                 Seres.STOP = false;
                 Util.log("Finished");
@@ -95,19 +93,26 @@ LoneIsland = function() {
     };
 
     this.updateIndividual = function(ind) {
-        if (ind.loneIslandEnergy <= 0) return false;
+        if (ind.scatteredFoodEnergy <= 0) return false;
 
         // Update age
-        ind.loneIslandAge = this.day;
+        ind.scatteredFoodAge = this.day;
 
         // Update energy loss
         var currTerrain = this.world.getTerrain(ind.torusX, ind.torusY);
-        ind.loneIslandEnergy -= currTerrain === LoneIsland.water ? LoneIsland.energyLossOnGround : LoneIsland.energyLossOnGround;
+        if (currTerrain === ScatteredFood.food) {
+            ind.scatteredFoodEnergy += ScatteredFood.energyGainOnFood;
+            putTerrain(ScatteredFood.ground, ind.torusX, ind.torusY);
+            ind.scatteredFoodCachedNearestFood = null;
+        } else {
+            ind.scatteredFoodEnergy -= ScatteredFood.energyLossOnGround;
+        }
 
         // Update brain inputs
-        if (ind.loneIslandCachedNearestGround === null) cacheNearestGround(ind);
-        ind.brain.inputs[0].value = ind.loneIslandCachedNearestGround.bearing;
-        ind.brain.inputs[1].value = currTerrain;
+        if (ind.scatteredFoodCachedNearestFood === null) cacheNearestFood(ind);
+        var nearest = ind.scatteredFoodCachedNearestFood;
+        ind.brain.inputs[0].value = nearest ? nearest.bearing : -1;
+        ind.brain.inputs[1].value = nearest ? 1 : 0;
 
         // Update brain outputs
         ind.brain.update(this.day);
@@ -119,59 +124,64 @@ LoneIsland = function() {
     };
 
     function putTerrain(terrain, x, y) {
+        x = Math.round(x);
+        y = Math.round(y);
+        if (terrain === ScatteredFood.food)
+            self.world.scatteredFoodFoodSquares.push({ x: x, y: y });
+        else if(self.world.getTerrain(x, y) === ScatteredFood.food) Util.arrayRemoveAllOccurrencesFunc(self.world.scatteredFoodFoodSquares, function(e) {
+            return e.x === x && e.y === y;
+        });
+
         self.world.putTerrain(terrain, x, y);
-        if (terrain === LoneIsland.ground) self.world.loneIslangGroundSquares.push({ x: x, y: y});
     }
 
     function defineWorld() {
-        self.world = new Torus(self.WORLD_SIZE, self.WORLD_SIZE, LoneIsland.water);
-        self.world.loneIslangGroundSquares = [];
-        putTerrain(LoneIsland.ground, 9, 9);
-        putTerrain(LoneIsland.ground, 10, 9);
-        putTerrain(LoneIsland.ground, 9, 10);
-        putTerrain(LoneIsland.ground, 10, 10);
+        self.world = new Torus(self.WORLD_SIZE, self.WORLD_SIZE, ScatteredFood.ground);
+        putFood();
     }
 
-    function randomBorderPosition() {
-        if (Math.random() < (40 / 78))
-            return { x: Math.random() < 0.5 ? 0 : 19, y: (Math.random() * 19) | 0 };
-        else
-            return { x: (Math.random() * 19) | 0, y: Math.random() < 0.5 ? 0 : 19 };
+    function randomPosition() {
+        return { x: (Math.random() * 19) | 0, y: Math.random() * 19 | 0};
     }
 
     function moveIndividual(ind) {
-        if (ind.loneIslandEnergy <= 0) return;
+        if (ind.scatteredFoodEnergy <= 0) return;
 
         var intensity = ind.brain.outputs[1].value;
         if (intensity === 0) return;
 
         var bearing = ind.brain.outputs[0].value;
-        if ((intensity >= 0 ? intensity : -intensity) > ind.loneIslandEnergy) intensity = ind.loneIslandEnergy * (intensity >= 0 ? 1 : -1);
+        if ((intensity >= 0 ? intensity : -intensity) > ind.scatteredFoodEnergy) intensity = ind.scatteredFoodEnergy * (intensity >= 0 ? 1 : -1);
         var moved = self.world.moveObjectBearing(ind, bearing, intensity);
         if (moved) {
-            ind.loneIslandEnergy -= (intensity >= 0 ? intensity : -intensity);
-            ind.loneIslandCachedNearestGround = null;              // clear cached value
+            ind.scatteredFoodEnergy -= (intensity >= 0 ? intensity : -intensity) * ScatteredFood.energyLossOnMoveFactor;
+            ind.scatteredFoodCachedNearestFood = null;
         }
     }
 
-    function nearestGroundSquare(x, y) {
+    function nearestFoodSquare(x, y) {
         var minDist = 10000000;
-        var nearestGround;
-        for (var i = 0, len = self.world.loneIslangGroundSquares.length; i < len; i++) {
-            var ground = self.world.loneIslangGroundSquares[i];
-            var dX = ground.x - x;
-            var dY = ground.y - y;
+        var nearestFood;
+        for (var i = 0, len = self.world.scatteredFoodFoodSquares.length; i < len; i++) {
+            var food = self.world.scatteredFoodFoodSquares[i];
+            var dX = food.x - x;
+            var dY = food.y - y;
             var dist = Math.abs(dX) + Math.abs(dY);
             if (dist < minDist) {
                 minDist = dist;
-                nearestGround = { x: ground.x, y: ground.y, dX: dX, dY: dY };
+                nearestFood = { x: food.x, y: food.y, dX: dX, dY: dY };
             }
         }
-        return nearestGround;
+        return nearestFood;
     }
 
-    function cacheNearestGround(ind) {
-        var nearest = nearestGroundSquare(ind.torusX, ind.torusY);
+    function cacheNearestFood(ind) {
+        var nearest = nearestFoodSquare(ind.torusX, ind.torusY);
+        if (!nearest) {
+            ind.scatteredFoodCachedNearestFood = null;
+            return;
+        }
+
         // Calculate bearing
         if (nearest.dX === 0) {
             nearest.bearing = nearest.dY > 0 ? -0.5 : 0.5;        // Special case...
@@ -181,9 +191,19 @@ LoneIsland = function() {
             else if (nearest.dY < 0) rads += 2 * Math.PI;
             nearest.bearing = rads / Math.PI - 1;
         }
-        ind.loneIslandCachedNearestGround = nearest;
+        ind.scatteredFoodCachedNearestFood = nearest;
     }
 
+    function putFood() {
+        self.world.scatteredFoodFoodSquares = [];
+        for (var i = 0; i < ScatteredFood.foodCound; i++) {
+            do {
+                var pos = randomPosition();
+            } while (self.world.getTerrain(pos.x, pos.y) === ScatteredFood.food);
+
+            putTerrain(ScatteredFood.food, pos.x, pos.y);
+        }
+    }
 
     // Drawable Grid interface
 
@@ -193,8 +213,8 @@ LoneIsland = function() {
 
     this.getGridBottomLayerShape = function(x, y) {
         switch(this.world.getTerrain(x, y)) {
-            case 0: return "Grass";
-            case 1: return "Water";
+            case 0: return "Empty";
+            case 1: return "Food";
         }
     };
 
@@ -216,10 +236,13 @@ LoneIsland = function() {
 
 };
 
-LoneIsland.water  = 1;
-LoneIsland.ground = 0;
+ScatteredFood.ground = 0;
+ScatteredFood.food = 1;
 
-LoneIsland.initialEnergy = 50;
+ScatteredFood.initialEnergy = 50;
 
-LoneIsland.energyLossOnGround = 0.7;
-LoneIsland.energyLossOnGround = 0.1;
+ScatteredFood.energyLossOnMoveFactor = 0.3;
+ScatteredFood.energyLossOnGround = 1;
+ScatteredFood.energyGainOnFood  = 20;
+
+ScatteredFood.foodCound  = 10;
